@@ -4,6 +4,32 @@ A lightweight, single-binary security proxy for a local LLM platform (Ollama).
 It sits in front of Ollama and requires an API key on every incoming request,
 forwarding authorized traffic upstream and rejecting everything else with `401`.
 
+## Quickstart
+
+```sh
+# 1. Clone the repo
+git clone https://github.com/asimmittal/ollama-proxy.git
+cd ollama-proxy
+
+# 2. Build the binary (requires Go 1.22+)
+make build        # produces ./bin/ollama-proxy
+
+# 3. Symlink it into your user bin folder so `ollama-proxy` is on your PATH
+mkdir -p "$HOME/bin"
+ln -sf "$(pwd)/bin/ollama-proxy" "$HOME/bin/ollama-proxy"
+# (ensure $HOME/bin is on your PATH, e.g. add `export PATH="$HOME/bin:$PATH"` to your shell rc)
+
+# 4. Run it with an API key
+ollama-proxy --api-key "my-secret-key" --model llama3
+
+# 5. Call it from another terminal
+curl http://localhost:11435/v1/models \
+  -H "Authorization: Bearer my-secret-key"
+```
+
+That's it. The proxy verifies Ollama is reachable (starting `ollama serve` if
+needed), checks the model exists, and then forwards authorized requests upstream.
+
 ## Features
 
 - API key enforcement via `Authorization: Bearer <key>` or `X-API-Key`
@@ -68,7 +94,33 @@ Flags take precedence over environment variables, which take precedence over def
 
 ## Cross-compiling release binaries
 
-    make release  # builds darwin/linux for amd64 + arm64 into ./bin
+    make release                  # builds darwin/linux for amd64 + arm64 into ./bin
+    make build VERSION=v1.2.3     # stamp a version into a local build
+
+Check the version baked into a binary:
+
+    ollama-proxy --version
+
+## Continuous integration & releases
+
+Two GitHub Actions workflows live in `.github/workflows/`:
+
+- **`ci.yml`** runs `go vet`, `go test`, and `go build` on every push to `main`
+  and on every pull request, across Linux and macOS.
+- **`release.yml`** runs [GoReleaser](https://goreleaser.com) whenever a
+  `v*` tag is pushed. It cross-compiles binaries for linux/macOS (amd64 + arm64),
+  builds `.tar.gz` archives plus a `checksums.txt`, generates a changelog, and
+  publishes them to a GitHub Release. The version is taken from the tag and
+  stamped into the binary via `-X main.version`.
+
+To cut a release, push a semver tag:
+
+    git tag v0.1.0
+    git push origin v0.1.0
+
+The workflow uses the automatically provided `GITHUB_TOKEN`, so no extra secrets
+are required. You can validate the GoReleaser config locally with
+`goreleaser check` and dry-run a build with `goreleaser release --snapshot --clean`.
 
 ## Run as a systemd service (Ubuntu)
 

@@ -1,7 +1,8 @@
 BINARY := ollama-proxy
 PKG := ./cmd/ollama-proxy
 BIN_DIR := bin
-LDFLAGS := -s -w
+VERSION ?= dev
+LDFLAGS := -s -w -X main.version=$(VERSION)
 
 PLATFORMS := \
 	darwin/amd64 \

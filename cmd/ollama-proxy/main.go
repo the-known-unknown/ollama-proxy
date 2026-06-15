@@ -16,7 +16,16 @@ import (
 	"github.com/asimmittal/ollama-proxy/internal/upstream"
 )
 
+var version = "dev"
+
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "--version", "-version", "version":
+			fmt.Println("ollama-proxy " + version)
+			return
+		}
+	}
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatalf("error: %v", err)
 	}
