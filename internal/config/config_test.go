@@ -87,3 +87,25 @@ func TestParseInvalidPort(t *testing.T) {
 		t.Fatalf("expected port error, got %v", err)
 	}
 }
+
+func TestHostIsLocal(t *testing.T) {
+	tests := []struct {
+		host string
+		want bool
+	}{
+		{"http://localhost:11434", true},
+		{"http://127.0.0.1:11434", true},
+		{"http://[::1]:11434", true},
+		{"http://0.0.0.0:11434", true},
+		{"http://192.168.1.50:11434", false},
+		{"https://example.com", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.host, func(t *testing.T) {
+			c := &Config{Host: tt.host}
+			if got := c.HostIsLocal(); got != tt.want {
+				t.Errorf("HostIsLocal(%q) = %v, want %v", tt.host, got, tt.want)
+			}
+		})
+	}
+}

@@ -57,6 +57,9 @@ func run(args []string) error {
 	platform := upstream.NewOllamaPlatform(client)
 
 	if !platform.Running(ctx) {
+		if !cfg.HostIsLocal() {
+			return fmt.Errorf("upstream host %s is not reachable; auto-start is only attempted for local hosts", cfg.Host)
+		}
 		logger.Printf("platform %q not responding at %s; attempting to start it", cfg.Platform, cfg.Host)
 		started, err := platform.EnsureRunning(ctx, 15*time.Second, 500*time.Millisecond)
 		if err != nil {

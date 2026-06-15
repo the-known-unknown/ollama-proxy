@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"strconv"
@@ -92,6 +93,22 @@ func (c *Config) validate() error {
 
 func (c *Config) HostURL() (*url.URL, error) {
 	return url.Parse(c.Host)
+}
+
+func (c *Config) HostIsLocal() bool {
+	u, err := url.Parse(c.Host)
+	if err != nil {
+		return false
+	}
+	host := u.Hostname()
+	switch strings.ToLower(host) {
+	case "localhost", "0.0.0.0":
+		return true
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		return ip.IsLoopback()
+	}
+	return false
 }
 
 func (c *Config) SecurityEnabled() bool {

@@ -82,8 +82,11 @@ Flags take precedence over environment variables, which take precedence over def
 ### Startup behavior
 
 1. If no API key is set and `--insecure` is not passed, you are asked to confirm.
-2. If the upstream platform is not responding, the proxy tries `ollama serve`
-   in the background and waits up to 15s for it to become ready.
+2. If the upstream platform is not responding and the host is local
+   (`localhost`, a loopback address, or `0.0.0.0`), the proxy tries
+   `ollama serve` in the background and waits up to 15s for it to become ready.
+   For a remote host it does not attempt a start and exits with a clear
+   "not reachable" error instead.
 3. The upstream `/` endpoint must return `200`.
 4. If `--model` is set it must exist upstream; otherwise the available models are listed.
 
